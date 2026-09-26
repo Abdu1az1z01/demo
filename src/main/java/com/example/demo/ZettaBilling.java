@@ -8,14 +8,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-public class DemoApplication {
+
+
+public class ZettaBilling {
 
     public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
+        SpringApplication.run(ZettaBilling.class, args);
     }
 
-    @GetMapping("/hello")
-    public String sayHello(@RequestParam(defaultValue = "Мир") String name) {
-        return "Привет, " + name + "!";
+    @GetMapping("/ZettaBilling")
+    public String ZettaBilling(@RequestParam(value = "name", defaultValue = "World") String name) {
+        return String.format("Hello %s!", name);
     }
 }
