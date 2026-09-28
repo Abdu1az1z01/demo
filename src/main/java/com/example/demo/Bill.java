@@ -1,0 +1,79 @@
+package com.example.demo;
+
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+// Начисление (квитанция) абонента за один месяц. Каждая запись — строка в таблице BILLS.
+@Entity
+@Table(name = "bills")
+public class Bill {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "subscriber_id")
+    private Subscriber subscriber;
+
+    // Расчётный месяц в формате 2026-09
+    @Column(nullable = false)
+    private String period;
+
+    @Column(name = "previous_reading")
+    private double previousReading;
+
+    @Column(name = "current_reading")
+    private double currentReading;
+
+    // Расход = текущие − предыдущие показания
+    private double consumption;
+
+    // Сумма к оплате = расход × тариф
+    private double amount;
+
+    // Оплачено или нет (на фронтенде: зелёный / красный)
+    private boolean paid;
+
+    @Column(name = "paid_at")
+    private LocalDate paidAt;
+
+    protected Bill() {
+    }
+
+    public Bill(Subscriber subscriber, String period, double previousReading, double currentReading) {
+        this.subscriber = subscriber;
+        this.period = period;
+        this.previousReading = previousReading;
+        this.currentReading = currentReading;
+        this.consumption = Math.round((currentReading - previousReading) * 100) / 100.0;
+        this.amount = Math.round(consumption * subscriber.getTariff() * 100) / 100.0;
+    }
+
+    public void markPaid(LocalDate date) {
+        this.paid = true;
+        this.paidAt = date;
+    }
+
+    public Long getId() { return id; }
+    public Subscriber getSubscriber() { return subscriber; }
+    public String getPeriod() { return period; }
+    public double getPreviousReading() { return previousReading; }
+    public double getCurrentReading() { return currentReading; }
+    public double getConsumption() { return consumption; }
+    public double getAmount() { return amount; }
+    public boolean isPaid() { return paid; }
+    public LocalDate getPaidAt() { return paidAt; }
+}
