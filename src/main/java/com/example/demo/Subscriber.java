@@ -31,6 +31,9 @@ public class Subscriber {
 
     private String address;
 
+    private String phone;
+
+    // Предпоследние и последние переданные показания счётчика
     @Column(name = "previous_reading")
     private double previousReading;
 
@@ -40,30 +43,22 @@ public class Subscriber {
     // Тариф в сомах за единицу (м³, Гкал, человек)
     private double tariff;
 
-    // Сумма к оплате / долг в сомах
+    // Общий долг = сумма всех неоплаченных начислений (таблица BILLS)
     private double debt;
 
     protected Subscriber() {
     }
 
     public Subscriber(String accountNumber, String serviceType, String ownerName, String address,
-                      double previousReading, double tariff, double debt) {
+                      String phone, double previousReading, double tariff) {
         this.accountNumber = accountNumber;
         this.serviceType = serviceType;
         this.ownerName = ownerName;
         this.address = address;
+        this.phone = phone;
         this.previousReading = previousReading;
         this.currentReading = previousReading;
         this.tariff = tariff;
-        this.debt = debt;
-    }
-
-    // Принять новые показания: долг растёт на (новые − предыдущие) × тариф
-    public void applyReading(double reading) {
-        double consumption = reading - previousReading;
-        this.debt = Math.round((debt + consumption * tariff) * 100) / 100.0;
-        this.currentReading = reading;
-        this.previousReading = reading;
     }
 
     public Long getId() { return id; }
@@ -71,8 +66,17 @@ public class Subscriber {
     public String getServiceType() { return serviceType; }
     public String getOwnerName() { return ownerName; }
     public String getAddress() { return address; }
+    public String getPhone() { return phone; }
     public double getPreviousReading() { return previousReading; }
     public double getCurrentReading() { return currentReading; }
     public double getTariff() { return tariff; }
     public double getDebt() { return debt; }
+
+    // Новые показания: последние становятся предпоследними
+    public void applyReading(double reading) {
+        this.previousReading = this.currentReading;
+        this.currentReading = reading;
+    }
+
+    public void setDebt(double debt) { this.debt = debt; }
 }
