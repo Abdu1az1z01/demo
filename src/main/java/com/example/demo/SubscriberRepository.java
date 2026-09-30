@@ -8,15 +8,21 @@ import org.springframework.data.repository.query.Param;
 
 public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
 
-    // Абоненты одной услуги; поиск по ФИО, лицевому счёту или адресу (без учёта регистра)
+    // Поиск абонентов по ФИО, лицевому счёту, телефону или адресу (без учёта регистра).
+    // service = null — искать во всех услугах сразу.
     @Query("""
             select s from Subscriber s
-            where s.serviceType = :service
+            where (:service is null or s.serviceType = :service)
               and (:search = ''
                    or lower(s.ownerName) like lower(concat('%', :search, '%'))
                    or s.accountNumber like concat('%', :search, '%')
+                   or s.phone like concat('%', :search, '%')
                    or lower(s.address) like lower(concat('%', :search, '%')))
             order by s.ownerName
             """)
     List<Subscriber> search(@Param("service") String service, @Param("search") String search);
+
+    boolean existsByAccountNumberAndServiceType(String accountNumber, String serviceType);
+
+    boolean existsByAccountNumberAndServiceTypeAndIdNot(String accountNumber, String serviceType, Long id);
 }
