@@ -14,13 +14,13 @@ import jakarta.servlet.http.HttpServletResponse;
 
 // Проверяет каждый запрос к /api: есть ли токен входа и можно ли этому пользователю сюда.
 //   Сотрудник (EMPLOYEE) — можно всё.
-//   Гражданин (CITIZEN) — только свой абонент, его история, оплата своих начислений и передача показаний.
+//   Гражданин (CITIZEN) — только просмотр своего абонента и его истории и оплата своих начислений через банк.
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
 
     public static final String SESSION_ATTRIBUTE = "authSession";
 
-    private static final Pattern OWN_SUBSCRIBER = Pattern.compile("^/api/subscribers/(\\d+)(/bills|/readings)?$");
+    private static final Pattern OWN_SUBSCRIBER = Pattern.compile("^/api/subscribers/(\\d+)(/bills)?$");
     private static final Pattern PAY_BILL = Pattern.compile("^/api/bills/(\\d+)/pay$");
 
     private final SessionStore sessions;
@@ -55,8 +55,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     private boolean citizenAllowed(AuthSession session, String method, String path) {
         Matcher own = OWN_SUBSCRIBER.matcher(path);
         if (own.matches() && Long.valueOf(own.group(1)).equals(session.subscriberId())) {
-            boolean isReadings = "/readings".equals(own.group(2));
-            return isReadings ? "POST".equals(method) : "GET".equals(method);
+            return "GET".equals(method);
         }
         Matcher pay = PAY_BILL.matcher(path);
         if (pay.matches() && "POST".equals(method)) {

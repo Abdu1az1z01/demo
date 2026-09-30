@@ -50,6 +50,14 @@ public class Bill {
     @Column(name = "paid_at")
     private LocalDate paidAt;
 
+    // Через какой банк оплачено (например «MBank»)
+    @Column(name = "paid_via")
+    private String paidVia;
+
+    // Причина, если статус оплаты вручную изменила инспекция (ошибка при оплате и т.п.)
+    @Column(name = "status_note")
+    private String statusNote;
+
     protected Bill() {
     }
 
@@ -62,9 +70,21 @@ public class Bill {
         this.amount = Math.round(consumption * subscriber.getTariff() * 100) / 100.0;
     }
 
-    public void markPaid(LocalDate date) {
+    // Оплата через банк
+    public void markPaid(LocalDate date, String via) {
         this.paid = true;
         this.paidAt = date;
+        this.paidVia = via;
+    }
+
+    // Инспекция вручную меняет статус (например, банк списал деньги, но оплата не отметилась)
+    public void changeStatus(boolean paid, String note, LocalDate date) {
+        this.paid = paid;
+        this.paidAt = paid ? (this.paidAt != null ? this.paidAt : date) : null;
+        if (!paid) {
+            this.paidVia = null;
+        }
+        this.statusNote = note;
     }
 
     public Long getId() { return id; }
@@ -76,4 +96,6 @@ public class Bill {
     public double getAmount() { return amount; }
     public boolean isPaid() { return paid; }
     public LocalDate getPaidAt() { return paidAt; }
+    public String getPaidVia() { return paidVia; }
+    public String getStatusNote() { return statusNote; }
 }

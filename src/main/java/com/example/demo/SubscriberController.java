@@ -26,6 +26,14 @@ public class SubscriberController {
     public record ReadingRequest(double reading) {
     }
 
+    // Оплата через банк: { "bank": "MBank" }
+    public record PaymentRequest(String bank) {
+    }
+
+    // Ручное изменение статуса инспекцией: { "paid": true, "note": "Банк подтвердил оплату, чек №123" }
+    public record StatusRequest(Boolean paid, String note) {
+    }
+
     private final SubscriberRepository subscribers;
     private final BillRepository bills;
 
@@ -114,17 +122,43 @@ public class SubscriberController {
         return recalculateDebt(subscriber);
     }
 
-    // Оплатить начисление: POST /api/bills/5/pay
+    // Оплатить начисление через банк: POST /api/bills/5/pay  { "bank": "MBank" }
     @PostMapping("/bills/{billId}/pay")
     @Transactional
-    public Subscriber pay(@PathVariable Long billId) {
-        Bill bill = bills.findById(billId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Начисление не найдено"));
-        if (!bill.isPaid()) {
-            bill.markPaid(LocalDate.now());
-            bills.save(bill);
+    public Subscriber pay(@PathVariable Long billId, @RequestBody PaymentRequest request) {
+        String bank = request.bank() == null ? "" : request.bank().trim();
+        if (bank.isEmpty() || bank.length() > 60) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Выберите банк для оплаты");
         }
+        Bill bill = findBill(billId);
+        if (bill.isPaid()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Это начисление уже оплачено");
+        }
+        bill.markPaid(LocalDate.now(), bank);
+        bills.save(bill);
         return recalculateDebt(bill.getSubscriber());
+    }
+
+    // Изменить статус оплаты вручную (только инспекция): PUT /api/bills/5/status
+    @PutMapping("/bills/{billId}/status")
+    @Transactional
+    public Subscriber changeStatus(@PathVariable Long billId, @RequestBody StatusRequest request) {
+        String note = request.note() == null ? "" : request.note().trim();
+        if (request.paid() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите новый статус");
+        }
+        if (note.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите причину изменения статуса");
+        }
+        Bill bill = findBill(billId);
+        bill.changeStatus(request.paid(), note, LocalDate.now());
+        bills.save(bill);
+        return recalculateDebt(bill.getSubscriber());
+    }
+
+    private Bill findBill(Long billId) {
+        return bills.findById(billId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Начисление не найдено"));
     }
 
     private Subscriber recalculateDebt(Subscriber subscriber) {
