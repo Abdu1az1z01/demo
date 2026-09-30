@@ -20,11 +20,11 @@ public class SessionStore {
     private final SecureRandom random = new SecureRandom();
     private final Map<String, AuthSession> sessions = new ConcurrentHashMap<>();
 
-    public AuthSession create(AuthSession.Role role, String name, Long subscriberId, String serviceType) {
+    public AuthSession create(String name) {
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        AuthSession session = new AuthSession(token, role, name, subscriberId, serviceType, Instant.now().plus(LIFETIME));
+        AuthSession session = new AuthSession(token, name, Instant.now().plus(LIFETIME));
         sessions.put(token, session);
         return session;
     }

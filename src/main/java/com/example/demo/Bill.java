@@ -70,7 +70,7 @@ public class Bill {
         this.amount = Math.round(consumption * subscriber.getTariff() * 100) / 100.0;
     }
 
-    // Оплата через банк
+    // Оплачено через банк (в тестовых данных)
     public void markPaid(LocalDate date, String via) {
         this.paid = true;
         this.paidAt = date;

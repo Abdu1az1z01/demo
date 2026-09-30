@@ -18,16 +18,12 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-// REST API для фронтенда. Доступ проверяет AuthInterceptor (сотрудник — всё, гражданин — только своё).
+// REST API для фронтенда. Доступ только для вошедших сотрудников инспекции (проверяет AuthInterceptor).
 @RestController
 @RequestMapping("/api")
 public class SubscriberController {
 
     public record ReadingRequest(double reading) {
-    }
-
-    // Оплата через банк: { "bank": "MBank" }
-    public record PaymentRequest(String bank) {
     }
 
     // Ручное изменение статуса инспекцией: { "paid": true, "note": "Банк подтвердил оплату, чек №123" }
@@ -122,24 +118,7 @@ public class SubscriberController {
         return recalculateDebt(subscriber);
     }
 
-    // Оплатить начисление через банк: POST /api/bills/5/pay  { "bank": "MBank" }
-    @PostMapping("/bills/{billId}/pay")
-    @Transactional
-    public Subscriber pay(@PathVariable Long billId, @RequestBody PaymentRequest request) {
-        String bank = request.bank() == null ? "" : request.bank().trim();
-        if (bank.isEmpty() || bank.length() > 60) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Выберите банк для оплаты");
-        }
-        Bill bill = findBill(billId);
-        if (bill.isPaid()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Это начисление уже оплачено");
-        }
-        bill.markPaid(LocalDate.now(), bank);
-        bills.save(bill);
-        return recalculateDebt(bill.getSubscriber());
-    }
-
-    // Изменить статус оплаты вручную (только инспекция): PUT /api/bills/5/status
+    // Изменить статус оплаты вручную (например, ошибка при оплате через банк): PUT /api/bills/5/status
     @PutMapping("/bills/{billId}/status")
     @Transactional
     public Subscriber changeStatus(@PathVariable Long billId, @RequestBody StatusRequest request) {

@@ -1,7 +1,6 @@
 package com.example.demo;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,8 +21,6 @@ public interface SubscriberRepository extends JpaRepository<Subscriber, Long> {
             order by s.ownerName
             """)
     List<Subscriber> search(@Param("service") String service, @Param("search") String search);
-
-    Optional<Subscriber> findByAccountNumberAndServiceType(String accountNumber, String serviceType);
 
     boolean existsByAccountNumberAndServiceType(String accountNumber, String serviceType);
 
