@@ -6,7 +6,6 @@ public record SubscriberRequest(
         String ownerName,
         String address,
         String phone,
-        Double tariff,
         Double currentReading) {
 
     public String accountNumberTrimmed() { return trim(accountNumber); }

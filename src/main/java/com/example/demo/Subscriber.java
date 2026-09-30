@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -40,7 +42,9 @@ public class Subscriber {
     @Column(name = "current_reading")
     private double currentReading;
 
-    // Тариф в сомах за единицу (м³, Гкал, человек)
+    // Устаревшее поле: раньше тариф был свой у каждого абонента.
+    // Теперь тариф единый для услуги (таблица TARIFFS), колонка оставлена для совместимости со старой базой.
+    @JsonIgnore
     private double tariff;
 
     // Общий долг = сумма всех неоплаченных начислений (таблица BILLS)
@@ -50,7 +54,7 @@ public class Subscriber {
     }
 
     public Subscriber(String accountNumber, String serviceType, String ownerName, String address,
-                      String phone, double previousReading, double tariff) {
+                      String phone, double previousReading) {
         this.accountNumber = accountNumber;
         this.serviceType = serviceType;
         this.ownerName = ownerName;
@@ -58,7 +62,6 @@ public class Subscriber {
         this.phone = phone;
         this.previousReading = previousReading;
         this.currentReading = previousReading;
-        this.tariff = tariff;
     }
 
     public Long getId() { return id; }
@@ -69,7 +72,6 @@ public class Subscriber {
     public String getPhone() { return phone; }
     public double getPreviousReading() { return previousReading; }
     public double getCurrentReading() { return currentReading; }
-    public double getTariff() { return tariff; }
     public double getDebt() { return debt; }
 
     // Новые показания: последние становятся предпоследними
@@ -81,11 +83,10 @@ public class Subscriber {
     public void setDebt(double debt) { this.debt = debt; }
 
     // Изменить данные абонента (форма «Редактировать» на сайте)
-    public void update(String accountNumber, String ownerName, String address, String phone, double tariff) {
+    public void update(String accountNumber, String ownerName, String address, String phone) {
         this.accountNumber = accountNumber;
         this.ownerName = ownerName;
         this.address = address;
         this.phone = phone;
-        this.tariff = tariff;
     }
 }

@@ -41,6 +41,9 @@ public class Bill {
     // Расход = текущие − предыдущие показания
     private double consumption;
 
+    // Тариф, по которому посчитано начисление (действовал на дату начисления)
+    private Double tariff;
+
     // Сумма к оплате = расход × тариф
     private double amount;
 
@@ -61,13 +64,21 @@ public class Bill {
     protected Bill() {
     }
 
-    public Bill(Subscriber subscriber, String period, double previousReading, double currentReading) {
+    public Bill(Subscriber subscriber, String period, double previousReading, double currentReading, double tariff) {
         this.subscriber = subscriber;
         this.period = period;
         this.previousReading = previousReading;
         this.currentReading = currentReading;
         this.consumption = Math.round((currentReading - previousReading) * 100) / 100.0;
-        this.amount = Math.round(consumption * subscriber.getTariff() * 100) / 100.0;
+        this.tariff = tariff;
+        this.amount = Math.round(consumption * tariff * 100) / 100.0;
+    }
+
+    // Для начислений из старой версии: восстановить тариф как сумма / расход
+    public void restoreTariff() {
+        if (tariff == null && consumption > 0) {
+            tariff = Math.round(amount / consumption * 100) / 100.0;
+        }
     }
 
     // Оплачено через банк (в тестовых данных)
@@ -93,6 +104,7 @@ public class Bill {
     public double getPreviousReading() { return previousReading; }
     public double getCurrentReading() { return currentReading; }
     public double getConsumption() { return consumption; }
+    public Double getTariff() { return tariff; }
     public double getAmount() { return amount; }
     public boolean isPaid() { return paid; }
     public LocalDate getPaidAt() { return paidAt; }

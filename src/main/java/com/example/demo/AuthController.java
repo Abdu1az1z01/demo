@@ -22,12 +22,14 @@ public class AuthController {
     private final EmployeeRepository employees;
     private final SessionStore sessions;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final WorkTimeService workTime;
 
     public AuthController(EmployeeRepository employees, SessionStore sessions,
-                          BCryptPasswordEncoder passwordEncoder) {
+                          BCryptPasswordEncoder passwordEncoder, WorkTimeService workTime) {
         this.employees = employees;
         this.sessions = sessions;
         this.passwordEncoder = passwordEncoder;
+        this.workTime = workTime;
     }
 
     // POST /api/auth/employee  { "login": "inspector", "password": "..." }
@@ -38,7 +40,12 @@ public class AuthController {
         Employee employee = employees.findByLogin(login)
                 .filter(e -> passwordEncoder.matches(password, e.getPasswordHash()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Неверный логин или пароль"));
-        return sessions.create(employee.getFullName());
+        if (!employee.isActive()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Доступ закрыт. Обратитесь к директору.");
+        }
+        // Начинаем учёт рабочего времени
+        WorkSession workSession = workTime.start(employee);
+        return sessions.create(employee, workSession.getId());
     }
 
     // Кто сейчас вошёл: GET /api/auth/me
@@ -52,5 +59,6 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(@RequestAttribute(AuthInterceptor.SESSION_ATTRIBUTE) AuthSession session) {
         sessions.remove(session.token());
+        workTime.end(session.workSessionId());
     }
 }
