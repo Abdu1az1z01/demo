@@ -1,0 +1,792 @@
+/* ===== Общие стили, которые используются на всех страницах ===== */
+
+body {
+  margin: 0;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 6px 0 0 0;
+  font-size: 1.05rem;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px #e0f2fe;
+}
+
+textarea.input { resize: vertical; }
+
+.btn {
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn:disabled { opacity: 0.6; cursor: default; }
+.btn-small { padding: 8px 16px; font-size: 0.95rem; white-space: nowrap; }
+.btn-success { background: #10b981; }
+.btn-success:hover { background: #059669; }
+.btn-primary { background: #0284c7; }
+.btn-primary:hover { background: #0369a1; }
+.btn-secondary { background: #e2e8f0; color: #334155; }
+.btn-secondary:hover { background: #cbd5e1; }
+.btn-danger { background: #ef4444; }
+.btn-danger:hover { background: #dc2626; }
+
+.msg { margin: 12px 0 0 0; font-size: 0.95rem; }
+.msg-error { color: #dc2626; }
+.msg-success { color: #059669; }
+
+.muted { color: #64748b; font-size: 0.95rem; }
+.small { font-size: 0.85rem; font-weight: 400; }
+.nowrap { white-space: nowrap; }
+
+/* Долг — красный, оплачено — зелёный */
+.debt { color: #dc2626; font-weight: 700; }
+.paid { color: #059669; font-weight: 700; }
+
+.empty-card {
+  padding: 60px 28px;
+  text-align: center;
+}
+
+.empty-icon { font-size: 3rem; }
+
+.empty-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 12px 0 6px;
+}
+
+/* Заголовок страницы: слева название, справа кнопки */
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.add-btn {
+  height: 50px;
+  white-space: nowrap;
+}
+
+/* Поле формы: подпись сверху, поле снизу */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 600;
+  color: #334155;
+}
+
+/* Галочка с подписью справа */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #334155;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ===== Таблицы (абоненты, история начислений, сотрудники) ===== */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+}
+
+.table th {
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0369a1;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+/* Таблица поплотнее, чтобы все колонки помещались на экране */
+.table-compact th,
+.table-compact td {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.table-compact th { white-space: normal; }
+
+.text-right { text-align: right !important; }
+
+.clickable { cursor: pointer; }
+.clickable:hover { background: #f0f9ff; }
+.inactive { opacity: 0.6; }
+
+.name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.empty-row {
+  text-align: center;
+  padding: 32px !important;
+}
+
+.row-debt { background: #fff5f5; }
+.row-paid { background: #f6fef9; }
+
+/* Карандаш, который появляется слева при наведении на строку (абонент, месяц, сотрудник) */
+.edit-col {
+  width: 34px;
+  padding-left: 8px !important;
+  padding-right: 0 !important;
+}
+
+.hover-edit {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.hover-row:hover .hover-edit,
+.hover-edit:focus-visible {
+  opacity: 1;
+}
+
+.hover-edit:hover {
+  background: #e0f2fe;
+  border-color: #7dd3fc;
+}
+
+/* На телефонах и планшетах нет «наведения мышкой» — карандаш виден всегда */
+@media (hover: none) {
+  .hover-edit { opacity: 1; }
+}
+
+/* Значки статуса */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-debt { background: #fee2e2; color: #b91c1c; }
+.badge-paid { background: #d1fae5; color: #047857; }
+.badge-planned { background: #dbeafe; color: #1d4ed8; }
+
+/* ===== Всплывающие окна ===== */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.modal h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #0f172a;
+}
+
+.modal .note {
+  margin: -6px 0 0;
+  font-size: 0.85rem;
+}
+
+/* Окно «Изменить статус оплаты» */
+.options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.option.selected {
+  border-color: #0284c7;
+  background: #f0f9ff;
+}
+
+/* Окно абонента: статусы оплаты по месяцам */
+.form-section {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+}
+
+.form-section-title {
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.bills {
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bill-row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.bill-period { font-weight: 600; }
+.delete { margin-right: auto; }
+
+/* Окно «Время работы» */
+.month { max-width: 220px; }
+.worktime-total { font-size: 1.05rem; }
+
+.sessions {
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.session {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 0.95rem;
+}
+
+.minutes { font-weight: 700; white-space: nowrap; }
+.online { color: #059669; font-weight: 600; }
+
+@media (max-width: 500px) {
+  .row-2 { grid-template-columns: 1fr; }
+}
+
+/* ===== Каркас: шапка, меню слева, содержимое ===== */
+.app {
+  --topbar-height: 72px;                      /* высота шапки */
+  --sidebar-width: clamp(240px, 15vw, 320px); /* ширина меню: 15% экрана, но от 240 до 320px */
+
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #f1f5f9;
+  min-height: 100vh;
+  color: #1e293b;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Логотип + название «Zetta Billing» (картинка логотипа — public/logo.png) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brand-logo { width: 48px; height: 48px; }
+
+.brand-title {
+  color: #0f172a;
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.brand-title span { color: #0284c7; }
+
+.version {
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Кто вошёл + кнопка «Выйти» */
+.user {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-info {
+  text-align: right;
+  line-height: 1.3;
+}
+
+.user-name { font-weight: 700; color: #0f172a; }
+.user-role { font-size: 0.85rem; color: #64748b; }
+
+.logout {
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+
+.logout:hover {
+  background: #fee2e2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+/* Меню услуг слева (всегда открыто) */
+.sidebar {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  bottom: 0;
+  z-index: 15;
+  width: var(--sidebar-width);
+  box-sizing: border-box;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.menu-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 6px 12px 10px;
+}
+
+.menu-section {
+  margin-top: 18px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 16px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  color: #1e293b;
+  text-decoration: none;
+  line-height: 1.3;
+}
+
+.menu-item:hover { background: #f1f5f9; }
+
+.menu-item.active {
+  background: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.menu-icon {
+  flex-shrink: 0;
+  width: 26px;
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+/* Основное содержимое (справа от меню) */
+.content {
+  margin-left: var(--sidebar-width);
+  padding: 32px 40px;
+}
+
+/* Страница входа — без меню слева */
+.no-sidebar .content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== Страница входа ===== */
+.login {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 420px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-form .subtitle { margin: -6px 0 6px; }
+.login-logo { width: 80px; height: 80px; }
+
+.login-form .submit {
+  height: 48px;
+  font-size: 1.05rem;
+}
+
+/* ===== Абоненты предприятия ===== */
+.tools {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 440px;
+  max-width: 100%;
+}
+
+.search-box .check { font-weight: 400; }
+.address { min-width: 140px; }
+
+/* Значок услуги в режиме «Искать во всех услугах» (название — во всплывающей подсказке) */
+.service-cell {
+  font-size: 1.4rem;
+  text-align: center;
+  cursor: help;
+}
+
+/* Таблица занимает экран, дальше — прокрутка внутри */
+.table-scroll {
+  max-height: calc(100vh - 260px);
+  min-height: 320px;
+  overflow: auto;
+}
+
+/* Заголовок таблицы остаётся наверху при прокрутке */
+.table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #ffffff;
+}
+
+.more {
+  text-align: center;
+  padding: 14px;
+}
+
+/* ===== Страница абонента ===== */
+.back {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: #0284c7;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.back:hover { text-decoration: underline; }
+
+.info {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 24px;
+  padding: 28px;
+}
+
+.info-main .page-title { margin: 6px 0 16px; }
+
+.info-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, auto));
+  gap: 8px 32px;
+  font-size: 1.05rem;
+}
+
+/* Общий долг: красный блок / зелёный блок */
+.total {
+  flex-shrink: 0;
+  min-width: 240px;
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.total-debt { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+.total-paid { background: #ecfdf5; border: 1px solid #a7f3d0; color: #059669; }
+
+.total-label { font-size: 0.95rem; font-weight: 600; }
+.total-value { font-size: 2.2rem; font-weight: 800; }
+.total-value span { font-size: 1.1rem; }
+.total-note { font-size: 0.9rem; margin-top: 4px; }
+
+.section-title {
+  margin: 28px 0 12px;
+  font-size: 1.3rem;
+  color: #0f172a;
+}
+
+.period { font-weight: 600; }
+
+/* Пометка, что статус вручную изменила инспекция */
+.status-note {
+  margin-top: 6px;
+  max-width: 280px;
+  font-size: 0.85rem;
+  color: #92400e;
+  background: #fef3c7;
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+/* Передача показаний */
+.reading {
+  margin-top: 24px;
+  padding: 24px 28px;
+}
+
+.reading h3 {
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.input-row {
+  display: flex;
+  gap: 10px;
+  max-width: 560px;
+}
+
+/* ===== Тарифы ===== */
+.tariffs-subtitle { max-width: 760px; }
+
+.tariff-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.tariff-card {
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tariff-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tariff-service {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.price {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0369a1;
+}
+
+.price span { font-size: 1rem; font-weight: 600; }
+
+.new-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.history {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.history-row.current-row { background: #f0fdf4; }
+.history-row.planned { background: #eff6ff; }
+
+.history-date { min-width: 100px; }
+.value { font-weight: 700; min-width: 80px; }
+.history-status { flex: 1; }
+
+.link-danger {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #dc2626;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* ===== Планшеты ===== */
+@media (max-width: 900px) {
+  .info { flex-direction: column; }
+  .info-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ===== Телефоны: меню становится строкой под шапкой, её можно листать вбок ===== */
+@media (max-width: 768px) {
+  .app { --topbar-height: 60px; }
+  .brand-title { font-size: 1.6rem; }
+  .brand-logo { width: 38px; height: 38px; }
+  .user-info, .version { display: none; }
+  .content { padding: 20px 16px; margin-left: 0; }
+
+  .sidebar {
+    position: static;
+    width: auto;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 8px;
+  }
+  .sidebar .menu-title { display: none; }
+  .sidebar .menu-item { white-space: nowrap; margin-bottom: 0; font-size: 1rem; }
+  .tariff-grid { grid-template-columns: minmax(0, 1fr); }
+  .tools, .search-box { width: 100%; }
+}

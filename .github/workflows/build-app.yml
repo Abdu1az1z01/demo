@@ -1,7 +1,7 @@
 # Сборка готового приложения Zetta Billing для Windows.
 #
 # Что делает:
-#   1. Скачивает фронтенд (Abdu1az1z01/communal-frontend, ветка Frotend) и собирает сайт.
+#   1. Собирает сайт (React) из папки frontend.
 #   2. Кладёт сайт внутрь бэкенда (src/main/resources/static) и собирает один JAR.
 #   3. Упаковывает JAR вместе с Java в папку ZettaBilling с ZettaBilling.exe (jpackage)
 #      — другу не нужно ничего устанавливать.
@@ -25,15 +25,8 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - name: Скачать бэкенд
+      - name: Скачать код
         uses: actions/checkout@v4
-
-      - name: Скачать фронтенд
-        uses: actions/checkout@v4
-        with:
-          repository: Abdu1az1z01/communal-frontend
-          ref: Frotend
-          path: frontend
 
       - name: Установить Node.js
         uses: actions/setup-node@v4
@@ -46,13 +39,13 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
-          npx ng build
+          npm run build
 
       - name: Положить сайт внутрь бэкенда
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force src/main/resources/static | Out-Null
-          Copy-Item -Recurse -Force frontend/dist/communal-frontend/browser/* src/main/resources/static/
+          Copy-Item -Recurse -Force frontend/dist/* src/main/resources/static/
 
       - name: Установить Java 21
         uses: actions/setup-java@v4

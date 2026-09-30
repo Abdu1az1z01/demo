@@ -3,9 +3,9 @@ package com.example.demo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
-// Готовое приложение: сайт (Angular) лежит внутри бэкенда в resources/static.
+// Готовое приложение: сайт (React, папка frontend) лежит внутри бэкенда в resources/static.
 // Адреса страниц сайта (/login, /services/gas, /employees ...) отдают index.html,
-// а дальше страницу показывает сам Angular. Адреса /api/** сюда не попадают.
+// а дальше страницу показывает сам React. Адреса /api/** сюда не попадают.
 @Controller
 public class SpaController {
 

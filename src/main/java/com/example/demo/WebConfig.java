@@ -7,7 +7,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-// Общие настройки веб-части: CORS для Angular и проверка входа для всех /api/**
+// Общие настройки веб-части: CORS для сайта (React) и проверка входа для всех /api/**
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

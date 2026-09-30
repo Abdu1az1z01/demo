@@ -6,15 +6,13 @@
 #   ZETTA_DIRECTOR_PASSWORD  — пароль директора (логин director)
 #   ZETTA_DEMO_DATA=true     — (необязательно) заполнить тестовыми абонентами
 
-# ---------- 1. Сайт (Angular) из репозитория communal-frontend ----------
+# ---------- 1. Сайт (React) из папки frontend этого репозитория ----------
 FROM node:24-alpine AS frontend
-ARG FRONTEND_BRANCH=Frotend
-# Скачиваем архив ветки фронтенда с GitHub. Если во фронтенде появился новый коммит,
-# архив меняется и сайт собирается заново (а не берётся из кэша прошлой сборки).
-ADD https://github.com/Abdu1az1z01/communal-frontend/archive/refs/heads/${FRONTEND_BRANCH}.tar.gz /tmp/frontend.tar.gz
-RUN mkdir /frontend && tar -xzf /tmp/frontend.tar.gz -C /frontend --strip-components=1
 WORKDIR /frontend
-RUN npm ci && npx ng build
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
 
 # ---------- 2. Бэкенд (Spring Boot) с сайтом внутри ----------
 FROM eclipse-temurin:21-jdk AS backend
@@ -23,7 +21,7 @@ COPY .mvn .mvn
 COPY mvnw pom.xml ./
 RUN sh mvnw -B -q dependency:go-offline
 COPY src src
-COPY --from=frontend /frontend/dist/communal-frontend/browser/ src/main/resources/static/
+COPY --from=frontend /frontend/dist/ src/main/resources/static/
 RUN sh mvnw -B -q -DskipTests package && cp target/*.jar /app/zetta-billing.jar
 
 # ---------- 3. Запуск ----------
