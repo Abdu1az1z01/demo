@@ -79,4 +79,13 @@ public class Subscriber {
     }
 
     public void setDebt(double debt) { this.debt = debt; }
+
+    // Изменить данные абонента (форма «Редактировать» на сайте)
+    public void update(String accountNumber, String ownerName, String address, String phone, double tariff) {
+        this.accountNumber = accountNumber;
+        this.ownerName = ownerName;
+        this.address = address;
+        this.phone = phone;
+        this.tariff = tariff;
+    }
 }

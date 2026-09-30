@@ -14,4 +14,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     // Сумма всех неоплаченных начислений абонента
     @Query("select coalesce(sum(b.amount), 0) from Bill b where b.subscriber.id = :subscriberId and b.paid = false")
     double sumUnpaid(@Param("subscriberId") Long subscriberId);
+
+    // Удалить всю историю абонента (перед удалением самого абонента)
+    void deleteBySubscriberId(Long subscriberId);
 }
