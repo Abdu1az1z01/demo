@@ -68,6 +68,9 @@ jobs:
       - name: Упаковать в ZettaBilling.exe вместе с Java
         shell: pwsh
         run: |
+          # Остановиться, если jpackage или другая программа вернёт ошибку
+          $PSNativeCommandUseErrorActionPreference = $true
+          $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Force build/input | Out-Null
           $jar = Get-ChildItem target/*.jar | Select-Object -First 1
           Copy-Item $jar.FullName build/input/zetta-billing.jar
@@ -76,8 +79,7 @@ jobs:
             --input build/input --main-jar zetta-billing.jar `
             --icon packaging/zetta.ico --win-console `
             --jlink-options "--strip-debug --no-man-pages --no-header-files --compress=zip-6" `
-            --arguments --spring.profiles.active=app `
-            --java-options -Dfile.encoding=UTF-8 `
+            --arguments '--spring.profiles.active=app' `
             --dest build/out
           Copy-Item packaging/README.txt build/out/ZettaBilling/README.txt
           Compress-Archive -Path build/out/ZettaBilling -DestinationPath build/ZettaBilling-windows.zip
