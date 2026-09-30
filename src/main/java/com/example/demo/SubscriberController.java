@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,13 +18,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-// REST API для фронтенда. CORS разрешён для Angular на любом порту localhost / 127.0.0.1.
+// REST API для фронтенда. Доступ только для вошедших сотрудников инспекции (проверяет AuthInterceptor).
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class SubscriberController {
 
     public record ReadingRequest(double reading) {
+    }
+
+    // Ручное изменение статуса инспекцией: { "paid": true, "note": "Банк подтвердил оплату, чек №123" }
+    public record StatusRequest(Boolean paid, String note) {
     }
 
     private final SubscriberRepository subscribers;
@@ -116,17 +118,26 @@ public class SubscriberController {
         return recalculateDebt(subscriber);
     }
 
-    // Оплатить начисление: POST /api/bills/5/pay
-    @PostMapping("/bills/{billId}/pay")
+    // Изменить статус оплаты вручную (например, ошибка при оплате через банк): PUT /api/bills/5/status
+    @PutMapping("/bills/{billId}/status")
     @Transactional
-    public Subscriber pay(@PathVariable Long billId) {
-        Bill bill = bills.findById(billId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Начисление не найдено"));
-        if (!bill.isPaid()) {
-            bill.markPaid(LocalDate.now());
-            bills.save(bill);
+    public Subscriber changeStatus(@PathVariable Long billId, @RequestBody StatusRequest request) {
+        String note = request.note() == null ? "" : request.note().trim();
+        if (request.paid() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите новый статус");
         }
+        if (note.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите причину изменения статуса");
+        }
+        Bill bill = findBill(billId);
+        bill.changeStatus(request.paid(), note, LocalDate.now());
+        bills.save(bill);
         return recalculateDebt(bill.getSubscriber());
+    }
+
+    private Bill findBill(Long billId) {
+        return bills.findById(billId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Начисление не найдено"));
     }
 
     private Subscriber recalculateDebt(Subscriber subscriber) {

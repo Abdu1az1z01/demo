@@ -51,6 +51,9 @@ public class DataSeeder implements CommandLineRunner {
 
     private static final int MONTHS_OF_HISTORY = 6;
 
+    // Банки, через которые «оплачены» тестовые начисления
+    private static final List<String> BANKS = List.of("MBank", "Optima Bank", "Bakai Bank", "О!Деньги", "Элсом");
+
     private final SubscriberRepository subscribers;
     private final BillRepository bills;
 
@@ -85,7 +88,7 @@ public class DataSeeder implements CommandLineRunner {
                     double next = Math.round((reading + usage) * 10) / 10.0;
                     Bill bill = new Bill(subscriber, period.toString(), reading, next);
                     if (m > unpaidMonths) {
-                        bill.markPaid(period.plusMonths(1).atDay(10));
+                        bill.markPaid(period.plusMonths(1).atDay(10), BANKS.get((i + m) % BANKS.size()));
                     }
                     bills.save(bill);
                     subscriber.applyReading(next);
