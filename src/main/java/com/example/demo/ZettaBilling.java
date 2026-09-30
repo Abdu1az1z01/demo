@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ZettaBilling {
 
     public static void main(String[] args) {
+        // На сервере: адрес базы вида postgresql://... превращаем в настройки Spring
+        DatabaseUrl.applyFromEnvironment();
         SpringApplication.run(ZettaBilling.class, args);
     }
 

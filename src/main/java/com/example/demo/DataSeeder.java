@@ -4,11 +4,12 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-// Заполняет базу тестовыми данными:
+// Заполняет базу тестовыми данными (только если zetta.demo-data=true):
 //   тарифы — если таблица TARIFFS пустая (старый тариф с 2020 года и повышение 3 месяца назад);
 //   тариф в начислениях из старой версии — восстанавливается как сумма / расход;
 //   абоненты и история начислений за 6 месяцев — если таблица начислений пустая.
@@ -64,18 +65,26 @@ public class DataSeeder implements CommandLineRunner {
     private final BillRepository bills;
     private final TariffRepository tariffRepository;
     private final TariffService tariffs;
+    private final boolean enabled;
 
     public DataSeeder(SubscriberRepository subscribers, BillRepository bills,
-                      TariffRepository tariffRepository, TariffService tariffs) {
+                      TariffRepository tariffRepository, TariffService tariffs,
+                      @Value("${zetta.demo-data:true}") boolean enabled) {
         this.subscribers = subscribers;
         this.bills = bills;
         this.tariffRepository = tariffRepository;
         this.tariffs = tariffs;
+        this.enabled = enabled;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
+        if (!enabled) {
+            // Без тестовых данных всё равно восстанавливаем тариф в старых начислениях
+            bills.findByTariffIsNull().forEach(Bill::restoreTariff);
+            return;
+        }
         YearMonth now = YearMonth.now(TariffService.ZONE);
         seedTariffs(now);
 

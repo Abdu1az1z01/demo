@@ -29,10 +29,11 @@ public class BrowserOpener {
     @EventListener(ApplicationReadyEvent.class)
     public void openBrowser() {
         String url = "http://localhost:" + port;
-        log.info("Zetta Billing запущен: {}  (чтобы остановить — закройте это окно)", url);
         if (!enabled) {
+            log.info("Zetta Billing запущен, порт {}", port);
             return;
         }
+        log.info("Zetta Billing запущен: {}  (чтобы остановить — закройте это окно)", url);
         String os = System.getProperty("os.name", "").toLowerCase(Locale.ROOT);
         String[] command = os.contains("win") ? new String[] {"rundll32", "url.dll,FileProtocolHandler", url}
                 : os.contains("mac") ? new String[] {"open", url}

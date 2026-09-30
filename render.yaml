@@ -1,0 +1,16 @@
+# Настройки для Render.com (раздел Blueprints → New Blueprint Instance → этот репозиторий).
+# Создаёт веб-сервис из Dockerfile. Значения с sync: false Render спросит при создании.
+services:
+  - type: web
+    name: zetta-billing
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /login
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: ZETTA_DIRECTOR_PASSWORD
+        sync: false
+      - key: ZETTA_DEMO_DATA
+        value: "true"
