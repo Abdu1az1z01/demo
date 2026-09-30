@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.List;
 
@@ -7,15 +8,17 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-// Заполняет базу тестовыми абонентами и историей начислений за 6 месяцев.
-// Срабатывает, если таблица начислений пустая (первый запуск или база от старой версии).
+// Заполняет базу тестовыми данными:
+//   тарифы — если таблица TARIFFS пустая (старый тариф с 2020 года и повышение 3 месяца назад);
+//   тариф в начислениях из старой версии — восстанавливается как сумма / расход;
+//   абоненты и история начислений за 6 месяцев — если таблица начислений пустая.
 @Component
 public class DataSeeder implements CommandLineRunner {
 
     private record Service(String code, String accountPrefix, double tariff, double monthlyUsage) {
     }
 
-    // Тарифы и средний расход в месяц — примерные, для демонстрации
+    // Тарифы (текущие) и средний расход в месяц — примерные, для демонстрации
     private static final List<Service> SERVICES = List.of(
             new Service("cold-water", "10", 10.45, 8),
             new Service("hot-water", "20", 95.60, 4),
@@ -54,30 +57,42 @@ public class DataSeeder implements CommandLineRunner {
     // Банки, через которые «оплачены» тестовые начисления
     private static final List<String> BANKS = List.of("MBank", "Optima Bank", "Bakai Bank", "О!Деньги", "Элсом");
 
+    // Старый тариф до повышения = 90% от текущего
+    private static final double OLD_TARIFF_RATIO = 0.9;
+
     private final SubscriberRepository subscribers;
     private final BillRepository bills;
+    private final TariffRepository tariffRepository;
+    private final TariffService tariffs;
 
-    public DataSeeder(SubscriberRepository subscribers, BillRepository bills) {
+    public DataSeeder(SubscriberRepository subscribers, BillRepository bills,
+                      TariffRepository tariffRepository, TariffService tariffs) {
         this.subscribers = subscribers;
         this.bills = bills;
+        this.tariffRepository = tariffRepository;
+        this.tariffs = tariffs;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
+        YearMonth now = YearMonth.now(TariffService.ZONE);
+        seedTariffs(now);
+
         if (bills.count() > 0) {
+            // База от старой версии: восстанавливаем тариф в начислениях, где его нет
+            bills.findByTariffIsNull().forEach(Bill::restoreTariff);
             return;
         }
         subscribers.deleteAllInBatch();
 
-        YearMonth now = YearMonth.now();
         for (Service service : SERVICES) {
             for (int i = 0; i < NAMES.size(); i++) {
                 String account = service.accountPrefix() + String.format("%04d", 2030 + i);
                 String address = "г. Бишкек, " + STREETS.get(i % STREETS.size()) + " " + (10 + i * 7) + ", кв. " + (i * 3 + 1);
                 String phone = "+996 " + (550 + i) + " " + String.format("%06d", 120000 + i * 3571);
                 Subscriber subscriber = subscribers.save(
-                        new Subscriber(account, service.code(), NAMES.get(i), address, phone, 100 + i * 17, service.tariff()));
+                        new Subscriber(account, service.code(), NAMES.get(i), address, phone, 100 + i * 17));
 
                 // История за последние месяцы; у части абонентов последние 1–2 месяца не оплачены
                 int unpaidMonths = i % 3;
@@ -86,7 +101,9 @@ public class DataSeeder implements CommandLineRunner {
                     YearMonth period = now.minusMonths(m);
                     double usage = Math.round(service.monthlyUsage() * (0.8 + ((i + m) % 5) * 0.1) * 10) / 10.0;
                     double next = Math.round((reading + usage) * 10) / 10.0;
-                    Bill bill = new Bill(subscriber, period.toString(), reading, next);
+                    // Показания передаются в конце месяца — по тарифу, действовавшему на эту дату
+                    double price = tariffs.priceOn(service.code(), period.atEndOfMonth());
+                    Bill bill = new Bill(subscriber, period.toString(), reading, next, price);
                     if (m > unpaidMonths) {
                         bill.markPaid(period.plusMonths(1).atDay(10), BANKS.get((i + m) % BANKS.size()));
                     }
@@ -99,5 +116,18 @@ public class DataSeeder implements CommandLineRunner {
                 subscribers.save(subscriber);
             }
         }
+    }
+
+    private void seedTariffs(YearMonth now) {
+        if (tariffRepository.count() > 0) {
+            return;
+        }
+        LocalDate raisedFrom = now.minusMonths(3).atDay(1);
+        for (Service service : SERVICES) {
+            double oldPrice = Math.round(service.tariff() * OLD_TARIFF_RATIO * 100) / 100.0;
+            tariffRepository.save(new Tariff(service.code(), oldPrice, LocalDate.of(2020, 1, 1), "Начальные данные"));
+            tariffRepository.save(new Tariff(service.code(), service.tariff(), raisedFrom, "Начальные данные"));
+        }
+        tariffRepository.flush();
     }
 }

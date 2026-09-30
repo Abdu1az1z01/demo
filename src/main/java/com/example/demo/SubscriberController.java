@@ -32,10 +32,12 @@ public class SubscriberController {
 
     private final SubscriberRepository subscribers;
     private final BillRepository bills;
+    private final TariffService tariffs;
 
-    public SubscriberController(SubscriberRepository subscribers, BillRepository bills) {
+    public SubscriberController(SubscriberRepository subscribers, BillRepository bills, TariffService tariffs) {
         this.subscribers = subscribers;
         this.bills = bills;
+        this.tariffs = tariffs;
     }
 
     // Список абонентов предприятия: GET /api/services/cold-water/subscribers?search=иванов
@@ -61,10 +63,10 @@ public class SubscriberController {
         }
         double reading = request.currentReading() == null ? 0 : request.currentReading();
         return subscribers.save(new Subscriber(request.accountNumberTrimmed(), service, request.ownerNameTrimmed(),
-                request.addressTrimmed(), request.phoneTrimmed(), reading, request.tariff()));
+                request.addressTrimmed(), request.phoneTrimmed(), reading));
     }
 
-    // Изменить абонента (ФИО, лицевой счёт, адрес, телефон, тариф): PUT /api/subscribers/1
+    // Изменить абонента (ФИО, лицевой счёт, адрес, телефон): PUT /api/subscribers/1
     @PutMapping("/subscribers/{id}")
     @Transactional
     public Subscriber update(@PathVariable Long id, @RequestBody SubscriberRequest request) {
@@ -75,7 +77,7 @@ public class SubscriberController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Лицевой счёт уже занят в этой услуге");
         }
         subscriber.update(request.accountNumberTrimmed(), request.ownerNameTrimmed(),
-                request.addressTrimmed(), request.phoneTrimmed(), request.tariff());
+                request.addressTrimmed(), request.phoneTrimmed());
         return subscribers.save(subscriber);
     }
 
@@ -102,7 +104,7 @@ public class SubscriberController {
         return bills.findBySubscriberIdOrderByPeriodDescIdDesc(id);
     }
 
-    // Передать показания: создаётся новое неоплаченное начисление за текущий месяц
+    // Передать показания: создаётся новое неоплаченное начисление за текущий месяц по текущему тарифу
     // POST /api/subscribers/1/readings  { "reading": 130 }
     @PostMapping("/subscribers/{id}/readings")
     @Transactional
@@ -112,8 +114,10 @@ public class SubscriberController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Новые показания не могут быть меньше предыдущих");
         }
-        bills.save(new Bill(subscriber, YearMonth.now().toString(),
-                subscriber.getCurrentReading(), request.reading()));
+        // Начисление считается по единому тарифу, который действует сегодня
+        bills.save(new Bill(subscriber, YearMonth.now(TariffService.ZONE).toString(),
+                subscriber.getCurrentReading(), request.reading(),
+                tariffs.currentPrice(subscriber.getServiceType())));
         subscriber.applyReading(request.reading());
         return recalculateDebt(subscriber);
     }
@@ -130,7 +134,7 @@ public class SubscriberController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите причину изменения статуса");
         }
         Bill bill = findBill(billId);
-        bill.changeStatus(request.paid(), note, LocalDate.now());
+        bill.changeStatus(request.paid(), note, TariffService.today());
         bills.save(bill);
         return recalculateDebt(bill.getSubscriber());
     }
@@ -149,9 +153,6 @@ public class SubscriberController {
     private void validate(SubscriberRequest request) {
         if (request.ownerNameTrimmed().isEmpty() || request.accountNumberTrimmed().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ФИО и лицевой счёт обязательны");
-        }
-        if (request.tariff() == null || request.tariff() < 0) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите тариф (0 или больше)");
         }
     }
 

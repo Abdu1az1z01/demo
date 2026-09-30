@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Component;
 
 // Токены входа. Хранятся в памяти: после перезапуска бэкенда нужно войти заново.
+// Время работы при этом не теряется — оно пишется в таблицу WORK_SESSIONS.
 @Component
 public class SessionStore {
 
@@ -20,11 +21,12 @@ public class SessionStore {
     private final SecureRandom random = new SecureRandom();
     private final Map<String, AuthSession> sessions = new ConcurrentHashMap<>();
 
-    public AuthSession create(String name) {
+    public AuthSession create(Employee employee, Long workSessionId) {
         byte[] bytes = new byte[32];
         random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        AuthSession session = new AuthSession(token, name, Instant.now().plus(LIFETIME));
+        AuthSession session = new AuthSession(token, employee.getId(), employee.getFullName(), employee.getRole(),
+                workSessionId, Instant.now().plus(LIFETIME));
         sessions.put(token, session);
         return session;
     }
@@ -43,5 +45,10 @@ public class SessionStore {
 
     public void remove(String token) {
         sessions.remove(token);
+    }
+
+    // Закрыть все входы сотрудника (например, директор закрыл ему доступ или поменял роль)
+    public void removeByEmployee(Long employeeId) {
+        sessions.values().removeIf(s -> s.employeeId().equals(employeeId));
     }
 }
