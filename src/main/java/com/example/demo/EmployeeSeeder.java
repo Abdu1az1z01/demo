@@ -9,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 // Готовит сотрудников при запуске:
 //   сотрудникам из старой версии (без роли) ставит роль «инспектор»;
 //   если директора нет — создаёт его (zetta.director.* в application.properties);
-//   если база совсем пустая — создаёт ещё и тестового инспектора (zetta.inspector.*).
+//   если база совсем пустая и включены тестовые данные (zetta.demo-data) — создаёт ещё
+//   тестового инспектора (zetta.inspector.*).
 @Component
 public class EmployeeSeeder implements CommandLineRunner {
 
@@ -21,18 +22,21 @@ public class EmployeeSeeder implements CommandLineRunner {
     private final String directorPassword;
     private final String inspectorLogin;
     private final String inspectorPassword;
+    private final boolean demoData;
 
     public EmployeeSeeder(EmployeeRepository employees, BCryptPasswordEncoder passwordEncoder,
                           @Value("${zetta.director.login}") String directorLogin,
                           @Value("${zetta.director.password}") String directorPassword,
                           @Value("${zetta.inspector.login}") String inspectorLogin,
-                          @Value("${zetta.inspector.password}") String inspectorPassword) {
+                          @Value("${zetta.inspector.password}") String inspectorPassword,
+                          @Value("${zetta.demo-data:true}") boolean demoData) {
         this.employees = employees;
         this.passwordEncoder = passwordEncoder;
         this.directorLogin = directorLogin;
         this.directorPassword = directorPassword;
         this.inspectorLogin = inspectorLogin;
         this.inspectorPassword = inspectorPassword;
+        this.demoData = demoData;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class EmployeeSeeder implements CommandLineRunner {
                     "Директор", ORGANIZATION, Employee.Role.DIRECTOR, "Главный офис"));
         }
 
-        if (emptyDatabase) {
+        if (emptyDatabase && demoData) {
             employees.save(new Employee(inspectorLogin, passwordEncoder.encode(inspectorPassword),
                     "Инспектор", ORGANIZATION, Employee.Role.INSPECTOR, "Октябрьский район"));
         }

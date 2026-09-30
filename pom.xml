@@ -54,6 +54,12 @@
 			<artifactId>h2</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- PostgreSQL: база для сервера в интернете (профиль prod) -->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 		<!-- Веб-консоль H2 для просмотра таблиц -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

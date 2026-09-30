@@ -1,0 +1,106 @@
+# Сборка готового приложения Zetta Billing для Windows.
+#
+# Что делает:
+#   1. Скачивает фронтенд (Abdu1az1z01/communal-frontend, ветка Frotend) и собирает сайт.
+#   2. Кладёт сайт внутрь бэкенда (src/main/resources/static) и собирает один JAR.
+#   3. Упаковывает JAR вместе с Java в папку ZettaBilling с ZettaBilling.exe (jpackage)
+#      — другу не нужно ничего устанавливать.
+#
+# Где взять результат: GitHub → вкладка Actions → последний запуск «Сборка приложения» →
+# внизу раздел Artifacts → ZettaBilling-windows (zip).
+# Если создать тег вида v1.0.0 — архивы ещё и прикрепятся к релизу (вкладка Releases).
+name: Сборка приложения
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Скачать бэкенд
+        uses: actions/checkout@v4
+
+      - name: Скачать фронтенд
+        uses: actions/checkout@v4
+        with:
+          repository: Abdu1az1z01/communal-frontend
+          ref: Frotend
+          path: frontend
+
+      - name: Установить Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Собрать сайт
+        working-directory: frontend
+        run: |
+          npm ci
+          npx ng build
+
+      - name: Положить сайт внутрь бэкенда
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force src/main/resources/static | Out-Null
+          Copy-Item -Recurse -Force frontend/dist/communal-frontend/browser/* src/main/resources/static/
+
+      - name: Установить Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Собрать JAR
+        shell: pwsh
+        run: .\mvnw.cmd -B -DskipTests package
+
+      - name: Упаковать в ZettaBilling.exe вместе с Java
+        shell: pwsh
+        run: |
+          # Остановиться, если jpackage или другая программа вернёт ошибку
+          $PSNativeCommandUseErrorActionPreference = $true
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force build/input | Out-Null
+          $jar = Get-ChildItem target/*.jar | Select-Object -First 1
+          Copy-Item $jar.FullName build/input/zetta-billing.jar
+          jpackage --type app-image `
+            --name ZettaBilling --app-version 1.0.0 --vendor "Zetta Billing" `
+            --input build/input --main-jar zetta-billing.jar `
+            --icon packaging/zetta.ico --win-console `
+            --jlink-options "--strip-debug --no-man-pages --no-header-files --compress=zip-6" `
+            --arguments '--spring.profiles.active=app' `
+            --dest build/out
+          Copy-Item packaging/README.txt build/out/ZettaBilling/README.txt
+          Compress-Archive -Path build/out/ZettaBilling -DestinationPath build/ZettaBilling-windows.zip
+          Copy-Item build/input/zetta-billing.jar build/zetta-billing.jar
+
+      - name: Выложить архив Windows
+        uses: actions/upload-artifact@v4
+        with:
+          name: ZettaBilling-windows
+          path: build/ZettaBilling-windows.zip
+
+      - name: Выложить JAR (для Mac/Linux, нужна Java 21)
+        uses: actions/upload-artifact@v4
+        with:
+          name: zetta-billing-jar
+          path: build/zetta-billing.jar
+
+      - name: Прикрепить к релизу (только для тегов v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/ZettaBilling-windows.zip
+            build/zetta-billing.jar

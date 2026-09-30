@@ -1,0 +1,7 @@
+target/
+data/
+build/
+.git/
+.idea/
+*.iml
+src/main/resources/static/

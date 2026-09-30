@@ -34,3 +34,6 @@ build/
 
 ### H2 database files ###
 data/
+
+### Собранный сайт (кладётся сюда только при сборке приложения) ###
+src/main/resources/static/
